@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack://ClassicEditor/./emoji/svg/26ab.svg"],"names":[],"mappings":";;;;wHAAA,OAAe","file":"3233.ckeditor.js","sourcesContent":["export default \"<svg xmlns=\\\"http://www.w3.org/2000/svg\\\" viewBox=\\\"0 0 36 36\\\"><circle fill=\\\"#31373D\\\" cx=\\\"18\\\" cy=\\\"18\\\" r=\\\"18\\\"/></svg>\";"],"sourceRoot":""}

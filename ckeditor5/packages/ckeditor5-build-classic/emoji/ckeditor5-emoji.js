@@ -18,7 +18,6 @@ import '../emoji/css/emojigrid.css';
 
 import EmojiIcon from '../../ckeditor5-build-classic/emoji/icon/smiley-bw.svg';
 
-//import specialCharactersIcon from '../../ckeditor5-special-characters/theme/icons/specialcharacters.svg';
 //Emoji Plugin
 
 const ALL_EMOJI_GROUP = 'All';
@@ -149,6 +148,8 @@ class EmojiGridView extends View {
      */
     this.tiles = this.createCollection();
 
+    this.emojiSvgs = this.initEmojis();
+
     this.setTemplate({
       tag: 'div',
       attributes: {
@@ -198,15 +199,38 @@ class EmojiGridView extends View {
    * @param {String} name The name of the character (e.g. "greek small letter epsilon").
    * @returns {module:ui/button/buttonview~ButtonView}
    */
+  initEmojis() {
+    const reqSvgs = require.context('../emoji/svg', false, /\.svg$/);
+    const svgs = reqSvgs
+      .keys()
+      .map(path => ({ path, file: reqSvgs(path) }))
+
+    return svgs;
+  }
+
   createTile(character, name) {
+
+    const svgs = this.emojiSvgs;
+
+    const hexCode = character.codePointAt(0).toString(16);
+    let emojiSvg;
+
+    for (let i = 0; i < svgs.length; i++) {
+      let emojiPath = svgs[i].path
+      let truncatePath = emojiPath.slice(2, 7);
+      if (hexCode == truncatePath) {
+        emojiSvg = svgs[i].file.default;
+      }
+    }
+
     const tile = new ButtonView(this.locale);
 
     tile.set({
       label: character,
-      withText: true,
+      icon: emojiSvg,
+      //withText: true,
       class: 'ck-character-grid__tile'
     });
-
     // Labels are vital for the users to understand what character they're looking at.
     // For now we're using native title attribute for that, see #5817.
     tile.extendTemplate({
@@ -217,16 +241,13 @@ class EmojiGridView extends View {
         mouseover: tile.bindTemplate.to('mouseover')
       }
     });
-
     tile.on('mouseover', () => {
       this.fire('tileHover', { name, character });
     });
-
     tile.on('execute', () => {
       console.log('before');
       this.fire('execute', { name, character });
     });
-
     return tile;
   }
 }
