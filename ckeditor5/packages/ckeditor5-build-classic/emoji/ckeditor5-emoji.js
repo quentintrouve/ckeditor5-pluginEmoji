@@ -208,16 +208,25 @@ class EmojiGridView extends View {
     return svgs;
   }
 
+  getHexCode(character) {
+    if (character.length < 4) {
+      return character.codePointAt(0).toString(16);
+    }
+    return character.codePointAt(0).toString(16) + '-' + character.codePointAt(2).toString(16);
+  }
+
   createTile(character, name) {
 
     const svgs = this.emojiSvgs;
 
-    const hexCode = character.codePointAt(0).toString(16);
+    const hexCode = this.getHexCode(character)
+
+    console.log(hexCode);
     let emojiSvg;
 
     for (let i = 0; i < svgs.length; i++) {
-      let emojiPath = svgs[i].path
-      let truncatePath = emojiPath.slice(2, 7);
+      let emojiPath = svgs[i].path;
+      let truncatePath = emojiPath.replace('./', '').replace('.svg', '');
       if (hexCode == truncatePath) {
         emojiSvg = svgs[i].file.default;
       }
