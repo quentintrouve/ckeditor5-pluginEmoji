@@ -215,22 +215,22 @@ class EmojiGridView extends View {
     return character.codePointAt(0).toString(16) + '-' + character.codePointAt(2).toString(16);
   }
 
-  createTile(character, name) {
+  getSvg(path) {
+    return this.emojiSvgs.get(path);
+  }
 
-    const svgs = this.emojiSvgs;
+  createTile(character, name, color = null) {
 
-    const hexCode = this.getHexCode(character)
-
-    console.log(hexCode);
+    let hexCode = this.getHexCode(character)
     let emojiSvg;
 
-    for (let i = 0; i < svgs.length; i++) {
-      let emojiPath = svgs[i].path;
-      let truncatePath = emojiPath.replace('./', '').replace('.svg', '');
-      if (hexCode == truncatePath) {
-        emojiSvg = svgs[i].file.default;
-      }
+    if (color != null) {
+      hexCode = `${hexCode}-${color}`;
     }
+
+    let path = `./${hexCode}.svg`;
+
+    emojiSvg = this.getSvg(path);
 
     const tile = new ButtonView(this.locale);
 
@@ -367,6 +367,7 @@ export default class Emoji extends Plugin {
      * @member {Map.<String, String>} #_characters
      */
     this._characters = new Map();
+    this._charactersColorable = new Map();
 
     /**
      * Registered groups. Each group contains a collection with symbol names.
@@ -383,7 +384,7 @@ export default class Emoji extends Plugin {
 
     const inputCommand = editor.commands.get('input');
 
-    // Add the `specialCharacters` dropdown button to feature components.
+    // Add the `emoji` dropdown button to feature components.
     editor.ui.componentFactory.add('emoji', locale => {
       const dropdownView = createDropdown(locale);
       let dropdownPanelContent;
@@ -396,7 +397,7 @@ export default class Emoji extends Plugin {
 
       dropdownView.bind('isEnabled').to(inputCommand);
 
-      // Insert a special character when a tile was clicked.
+      // Insert an emoji when a tile was clicked.
       dropdownView.on('execute', (evt, data) => {
         editor.execute('input', { text: data.character });
         editor.editing.view.focus();
@@ -444,10 +445,18 @@ export default class Emoji extends Plugin {
     }
 
     const group = this._getGroup(groupName);
-    console.log(group);
+
     for (const item of items) {
       group.add(item.title);
+
       this._characters.set(item.title, item.character);
+
+      if (item.colorable != undefined && item.colorable == 'true') {
+        this._charactersColorable.set(item.title, true)
+      } else {
+        this._charactersColorable.set(item.title, false);
+      }
+
     }
   }
 
@@ -485,6 +494,9 @@ export default class Emoji extends Plugin {
     return this._characters.get(title);
   }
 
+  getColorable(title) {
+    return this._charactersColorable.get(title);
+  }
   /**
    * Returns a group of special characters. If the group with the specified name does not exist, it will be created.
    *
@@ -514,8 +526,13 @@ export default class Emoji extends Plugin {
 
     for (const title of characterTitles) {
       const character = this.getCharacter(title);
-
-      gridView.tiles.add(gridView.createTile(character, title));
+      const colorable = this.getColorable(title);
+      const color = "1f3ff";
+      if (colorable == true) {
+        gridView.tiles.add(gridView.createTile(character, title, color))
+      } else {
+        gridView.tiles.add(gridView.createTile(character, title));
+      }
     }
   }
 
