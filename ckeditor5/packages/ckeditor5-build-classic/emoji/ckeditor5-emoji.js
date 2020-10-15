@@ -205,12 +205,21 @@ class EmojiGridView extends View {
       .keys()
       .map(path => ({ path, file: reqSvgs(path) }))
 
-    return svgs;
+    let sgvsMap = new Map();
+
+    for (let i = 0; i < svgs.length; i++) {
+      svgs[i].path;
+      svgs[i].file.default;
+      sgvsMap.set(svgs[i].path, svgs[i].file.default)
+    }
+    return sgvsMap;
   }
 
   getHexCode(character) {
     if (character.length < 4) {
       return character.codePointAt(0).toString(16);
+    } else {
+      console.log(character.length);
     }
     return character.codePointAt(0).toString(16) + '-' + character.codePointAt(2).toString(16);
   }
@@ -237,7 +246,6 @@ class EmojiGridView extends View {
     tile.set({
       label: character,
       icon: emojiSvg,
-      //withText: true,
       class: 'ck-character-grid__tile'
     });
     // Labels are vital for the users to understand what character they're looking at.
@@ -368,6 +376,7 @@ export default class Emoji extends Plugin {
      */
     this._characters = new Map();
     this._charactersColorable = new Map();
+    this._tiles = new Map();
 
     /**
      * Registered groups. Each group contains a collection with symbol names.
@@ -376,6 +385,8 @@ export default class Emoji extends Plugin {
      * @member {Map.<String, Set.<String>>} #_groups
      */
     this._groups = new Map();
+
+    let emojiGrid;
   }
 
   init() {
@@ -417,6 +428,15 @@ export default class Emoji extends Plugin {
           name: null
         });
       });
+      this.emojiGrid = new EmojiGridView(locale);
+
+      if (!dropdownPanelContent) {
+        dropdownPanelContent = this._createDropdownPanelContent(locale, dropdownView);
+
+        dropdownView.panelView.children.add(dropdownPanelContent.navigationView);
+        dropdownView.panelView.children.add(dropdownPanelContent.gridView);
+        dropdownView.panelView.children.add(dropdownPanelContent.infoView);
+      }
 
       return dropdownView;
     });
@@ -497,6 +517,10 @@ export default class Emoji extends Plugin {
   getColorable(title) {
     return this._charactersColorable.get(title);
   }
+
+  getTile(title) {
+    return this._tiles.get(title);
+  }
   /**
    * Returns a group of special characters. If the group with the specified name does not exist, it will be created.
    *
@@ -527,12 +551,22 @@ export default class Emoji extends Plugin {
     for (const title of characterTitles) {
       const character = this.getCharacter(title);
       const colorable = this.getColorable(title);
+      let tile = this.getTile(title);
       const color = "1f3ff";
-      if (colorable == true) {
-        gridView.tiles.add(gridView.createTile(character, title, color))
-      } else {
-        gridView.tiles.add(gridView.createTile(character, title));
+      let newTile;
+
+      if (tile == undefined) {
+
+        if (colorable == true) {
+          newTile = gridView.createTile(character, title, color)
+        } else {
+          newTile = gridView.createTile(character, title)
+        }
+
+        this._tiles.set(title, newTile);
+        tile = newTile;
       }
+      gridView.tiles.add(tile);
     }
   }
 
@@ -551,7 +585,7 @@ export default class Emoji extends Plugin {
     specialCharsGroups.unshift(ALL_EMOJI_GROUP);
 
     const navigationView = new EmojiNavigationView(locale, specialCharsGroups);
-    const gridView = new EmojiGridView(locale);
+    const gridView = this.emojiGrid;
     const infoView = new EmojiInfoView(locale);
 
     gridView.delegate('execute').to(dropdownView);
