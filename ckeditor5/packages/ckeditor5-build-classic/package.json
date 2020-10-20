@@ -63,6 +63,7 @@
     "preversion": "npm run build"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-code-block": "^23.0.0",
     "@ckeditor/ckeditor5-font": "^23.0.0",
     "@ckeditor/ckeditor5-remove-format": "^23.0.0",
     "@ckeditor/ckeditor5-special-characters": "^23.0.0",

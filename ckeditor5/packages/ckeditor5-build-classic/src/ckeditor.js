@@ -16,16 +16,15 @@ import Bold from '@ckeditor/ckeditor5-basic-styles/src/bold';
 import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
 import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline';
 import Strikethrough from '@ckeditor/ckeditor5-basic-styles/src/strikethrough';
-import Subscript from '@ckeditor/ckeditor5-basic-styles/src/subscript';
-import Superscript from '@ckeditor/ckeditor5-basic-styles/src/superscript';
 import FontColor from '@ckeditor/ckeditor5-font/src/fontcolor';
 import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import Link from '@ckeditor/ckeditor5-link/src/link';
+import CodeBlock from '@ckeditor/ckeditor5-code-block/src/codeblock';
 import SpecialCharacters from '@ckeditor/ckeditor5-special-characters/src/specialcharacters';
 
 import Emoji from '../emoji/ckeditor5-emoji';
-import { EmojiCategory } from '../emoji/ckeditor5-emoji-category'
+import { EmojiCategory } from '../emoji/ckeditor5-emoji-category';
 
 //Emoji Plugin
 
@@ -43,15 +42,14 @@ ClassicEditor.builtinPlugins = [
 	Italic,
 	Underline,
 	Strikethrough,
-	Superscript,
-	Subscript,
 	FontColor,
 	Alignment,
 	List,
 	Link,
-	SpecialCharacters,
+	CodeBlock,
 	Emoji,
-	EmojiCategory
+	EmojiCategory,
+	SpecialCharacters
 ];
 
 // Editor configuration.
@@ -64,17 +62,17 @@ ClassicEditor.defaultConfig = {
 			'italic',
 			'underline',
 			'strikethrough',
-			'subscript',
-			'superscript',
+			'|',
 			'fontcolor',
 			'|',
 			'alignment',
 			'bulletedList',
 			'numberedList',
 			'|',
+			'codeblock',
+			'|',
 			'link',
-			'specialcharacters',
-			'emoji'
+			'emoji',
 		],
 	},
 	// This value must be kept in sync with the language defined in webpack.config.js.
