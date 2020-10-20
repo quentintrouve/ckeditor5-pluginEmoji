@@ -215,36 +215,41 @@ class EmojiGridView extends View {
     return sgvsMap;
   }
 
-  getHexCode(character) {
-    if (character.length < 4) {
-      return character.codePointAt(0).toString(16);
-    } else {
-      console.log(character.length);
-    }
-    return character.codePointAt(0).toString(16) + '-' + character.codePointAt(2).toString(16);
-  }
+  //getHexCode(character) {
+  //  if (character.length < 4) {
+  //    return character.codePointAt(0).toString(16);
+  //  } else {
+  //    console.log(character.length);
+  //  }
+  //  return character.codePointAt(0).toString(16) + '-' + character.codePointAt(2).toString(16);
+  //}
 
   getSvg(path) {
     return this.emojiSvgs.get(path);
   }
 
-  createTile(character, name, color = null) {
+  createTile(code, name/* , color = null */) {
 
-    let hexCode = this.getHexCode(character)
+    //let hexCode = this.getHexCode(character);
     let emojiSvg;
 
-    if (color != null) {
-      hexCode = `${hexCode}-${color}`;
-    }
+    //if (color != null) {
+    //  console.log(code);
+    //  hexCode = `${code}-${color}`;
+    //}
+    //console.log(code, typeof code);
+    let lowerCode = code.toLowerCase();
 
-    let path = `./${hexCode}.svg`;
+    //console.log(lowerCode);
+
+    let path = `./${lowerCode}.svg`;
 
     emojiSvg = this.getSvg(path);
 
     const tile = new ButtonView(this.locale);
 
     tile.set({
-      label: character,
+      label: code,
       icon: emojiSvg,
       class: 'ck-character-grid__tile'
     });
@@ -259,11 +264,10 @@ class EmojiGridView extends View {
       }
     });
     tile.on('mouseover', () => {
-      this.fire('tileHover', { name, character });
+      this.fire('tileHover', { name, code });
     });
     tile.on('execute', () => {
-      console.log('before');
-      this.fire('execute', { name, character });
+      this.fire('execute', { name, code });
     });
     return tile;
   }
@@ -301,7 +305,7 @@ class EmojiInfoView extends View {
      * @readonly
      * @member {String} #code
      */
-    this.bind('code').to(this, 'character', characterToUnicodeString);
+    //this.bind('code').to(this, 'character', characterToUnicodeString);
 
     this.setTemplate({
       tag: 'div',
@@ -344,15 +348,15 @@ class EmojiInfoView extends View {
   }
 }
 
-function characterToUnicodeString(character) {
-  if (character === null) {
-    return '';
-  }
-
-  const hexCode = character.codePointAt(0).toString(16);
-
-  return 'U+' + ('0000' + hexCode).slice(-4);
-}
+//function characterToUnicodeString(character) {
+//  if (character === null) {
+//    return '';
+//  }
+//
+//  const hexCode = character.codePointAt(0).toString(16);
+//
+//  return 'U+' + ('0000' + hexCode).slice(-4);
+//}
 
 /*@extend Plugin*/
 export default class Emoji extends Plugin {
@@ -369,13 +373,13 @@ export default class Emoji extends Plugin {
     super(editor);
 
     /**
-     * Registered characters. A pair of a character name and its symbol.
+     * Registered characters. A pair of an emoji name and its code.
      *
      * @private
-     * @member {Map.<String, String>} #_characters
+     * @member {Map.<String, String>}
      */
-    this._characters = new Map();
-    this._charactersColorable = new Map();
+    this._emojis = new Map();
+    this._emojisColorable = new Map();
     this._tiles = new Map();
 
     /**
@@ -469,12 +473,12 @@ export default class Emoji extends Plugin {
     for (const item of items) {
       group.add(item.title);
 
-      this._characters.set(item.title, item.character);
+      this._emojis.set(item.title, item.code);
 
       if (item.colorable != undefined && item.colorable == 'true') {
-        this._charactersColorable.set(item.title, true)
+        this._emojisColorable.set(item.title, true)
       } else {
-        this._charactersColorable.set(item.title, false);
+        this._emojisColorable.set(item.title, false);
       }
 
     }
@@ -497,32 +501,39 @@ export default class Emoji extends Plugin {
    */
   getCharactersForGroup(groupName) {
     if (groupName === ALL_EMOJI_GROUP) {
-      return new Set(this._characters.keys());
+      return new Set(this._emojis.keys());
     }
 
     return this._groups.get(groupName);
   }
 
   /**
-   * Returns the symbol of a special character for the specified name. If the special character could not be found, `undefined`
+   * Returns the code of an emoji for the specified name. If the emoji could not be found, `undefined`
    * is returned.
    *
    * @param {String} title The title of a special character.
    * @returns {String|undefined}
    */
-  getCharacter(title) {
-    return this._characters.get(title);
+  getCode(title) {
+    return this._emojis.get(title);
   }
 
+  /**
+   * Returns if an emoji is colorable for the specified name. If the emoji could not be found, `undefined`
+   * is returned.
+   *
+   * @param {String} title The title of an Emoji.
+   * @returns {String|undefined}
+   */
   getColorable(title) {
-    return this._charactersColorable.get(title);
+    return this._emojisColorable.get(title);
   }
 
   getTile(title) {
     return this._tiles.get(title);
   }
   /**
-   * Returns a group of special characters. If the group with the specified name does not exist, it will be created.
+   * Returns a group of emojis. If the group with the specified name does not exist, it will be created.
    *
    * @private
    * @param {String} groupName The name of the group to create.
@@ -546,21 +557,21 @@ export default class Emoji extends Plugin {
     // Updating the grid starts with removing all tiles belonging to the old group.
     gridView.tiles.clear();
 
-    const characterTitles = this.getCharactersForGroup(currentGroupName);
+    const emojiTitles = this.getCharactersForGroup(currentGroupName);
 
-    for (const title of characterTitles) {
-      const character = this.getCharacter(title);
+    for (const title of emojiTitles) {
+      //const character = this.getCharacter(title);
+      const code = this.getCode(title);
       const colorable = this.getColorable(title);
       let tile = this.getTile(title);
-      const color = "1f3ff";
       let newTile;
 
       if (tile == undefined) {
 
         if (colorable == true) {
-          newTile = gridView.createTile(character, title, color)
+          newTile = gridView.createTile(/* character */ code, title /* color */)
         } else {
-          newTile = gridView.createTile(character, title)
+          newTile = gridView.createTile(/* character */ code, title)
         }
 
         this._tiles.set(title, newTile);
